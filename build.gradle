@@ -12,10 +12,32 @@ repositories {
         name = "spigotmc-repo"
         url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
     }
+
+    maven { url 'https://maven.enginehub.org/repo/' }
+
+    maven {
+        url 'https://repo.extendedclip.com/releases/'
+    }
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT")
+
+    //PAPI
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+
+    //WorldGuard
+    compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.9' //TODO: Investigate why >7.0.9 (ex 7.0.14 [exists]) fails
+
+    //H2
+    implementation 'com.h2database:h2:2.4.240'
+
+    //Lombok
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
+
+    testCompileOnly("org.projectlombok:lombok:1.18.42")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.42")
 }
 
 tasks {

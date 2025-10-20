@@ -1,8 +1,32 @@
 name: ClanPlugin
+main: org.matita08.plugins.clanMaster.ClanPlugin
+
 version: '1.0.0'
-main: org.matita08.plugins.clanPlugin.ClanPlugin
-api-version: '1.18'
 prefix: ClanMaster
+
 load: STARTUP
+api-version: '1.21.4'
+
 authors: [ matita08 ]
 description: A minecraft plugin
+
+depend: [WorldGuard]
+softdepend: ["PlaceholderAPI"]
+
+commands:
+  claim:
+    aliases:
+      -
+    description: Claim
+    permission: ClanMaster.claim
+    permission-message: You aren't allowed to do this
+    usage: /claim
+
+permissions:
+  ClanMaster.*:
+    default: op
+    children:
+      ClanMaster.claim: true
+  ClanMaster.claim:
+    default: true
+    description: Allow the use fo /claim
