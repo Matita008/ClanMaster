@@ -1,0 +1,8 @@
+name: ClanPlugin
+version: '1.0.0'
+main: org.matita08.plugins.clanPlugin.ClanPlugin
+api-version: '1.18'
+prefix: ClanMaster
+load: STARTUP
+authors: [ matita08 ]
+description: A minecraft plugin
