@@ -3,30 +3,51 @@ main: org.matita08.plugins.clanMaster.ClanPlugin
 
 version: '1.0.0'
 prefix: ClanMaster
+database: true
 
 load: STARTUP
 api-version: '1.21.4'
 
 authors: [ matita08 ]
+website: https://github.com/Matita008/ClanMaster
 description: A minecraft plugin
 
 depend: [WorldGuard]
 softdepend: ["PlaceholderAPI"]
 
+libraries:
+  - com.h2database:h2:2.4.240
+
 commands:
-  claim:
+  clan:
+    description: Main plugin command
+    permission: ClanMaster.use
     aliases:
-      -
-    description: Claim
-    permission: ClanMaster.claim
-    permission-message: You aren't allowed to do this
-    usage: /claim
+      - cl
 
 permissions:
   ClanMaster.*:
     default: op
     children:
-      ClanMaster.claim: true
-  ClanMaster.claim:
+      ClanMaster.admin: true
+
+  ClanMaster.user:
     default: true
-    description: Allow the use fo /claim
+    children:
+      ClanMaster.create: true
+      ClanMaster.use: true
+  ClanMaster.admin:
+    default: op
+    children:
+      ClanMaster.user: true
+      ClanMaster.delete: true
+
+  ClanMaster.create:
+    default: true
+    description: Allow the ability to create a clan
+  ClanMaster.use:
+    default: true
+    description: Allow the use of the plugin
+  ClanMaster.delete:
+    default: false
+    description: Allows the ability to delete any clan
