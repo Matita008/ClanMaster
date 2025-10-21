@@ -1,28 +1,30 @@
 package org.matita08.plugins.clanMaster.storage;
 
-public enum DatabaseType {
+import org.matita08.plugins.clanMaster.storage.database.DatabaseManager;
+
+public enum StorageType {
    LocalH2(DatabaseManager::createLocalH2,"H2",  "Local"),
    RemoteH2(DatabaseManager::createRemoteH2);
    
-   public final DatabaseBuilder builder;
+   public final StorageBuilder builder;
    private final String[] aliases;
    
-   DatabaseType(DatabaseBuilder b){
+   StorageType(StorageBuilder b){
       builder = b;
       aliases = new String[0];
    }
    
-   DatabaseType(DatabaseBuilder b, String... aliases) {
+   StorageType(StorageBuilder b, String... aliases) {
       builder = b;
       this.aliases = aliases;
    }
    
-   public static DatabaseType get(String name) {
+   public static StorageType get(String name) {
       if(name == null || name.isBlank()) return LocalH2;
       
       name = name.trim();
       
-      for (DatabaseType db : values()) {
+      for (StorageType db : values()) {
          if(db.name().equalsIgnoreCase(name)) return db;
          for (String alias : db.aliases) {
             if(alias.equalsIgnoreCase(name)) return db;

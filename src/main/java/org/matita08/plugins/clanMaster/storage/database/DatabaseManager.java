@@ -1,10 +1,11 @@
-package org.matita08.plugins.clanMaster.storage;
+package org.matita08.plugins.clanMaster.storage.database;
 
 import com.google.common.base.Verify;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.matita08.plugins.clanMaster.ClanPlugin;
-import org.matita08.plugins.clanMaster.storage.implementation.h2.H2Database;
+import org.matita08.plugins.clanMaster.storage.StorageType;
+import org.matita08.plugins.clanMaster.storage.database.implementation.h2.H2Database;
 
 import java.io.File;
 
@@ -14,8 +15,8 @@ public class DatabaseManager {
    private static Database instance;
    
    public static void init() {
-      ConfigurationSection config = ClanPlugin.getConfig().getConfigurationSection("database");
-      instance = DatabaseType.get(Verify.verifyNotNull(config).getString("type","H2")).builder.get(config);
+      ConfigurationSection config = ClanPlugin.getConfigs().getConfigurationSection("database");
+      instance = StorageType.get(Verify.verifyNotNull(config).getString("type","H2")).builder.get(config);
       instance.init();
    }
    
