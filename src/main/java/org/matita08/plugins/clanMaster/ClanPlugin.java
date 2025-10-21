@@ -26,21 +26,30 @@ public final class ClanPlugin extends JavaPlugin {
    
    @Override
    public void onEnable() {
-      instance = this;
       config = (YamlConfiguration) super.getConfig();
-      LOG = getLogger();
-      dataDir = getDataFolder();
       
       if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
          PAPI.init();
       }
       
       DatabaseManager.init();
+      
+      LOG.info( getClass().getCanonicalName() + " Enabled ClanMaster successfully!");
    }
    
    @Override
    public void onDisable() {
-      instance = null;
       saveConfig();
+      
+      LOG.info( getClass().getCanonicalName() + " Disabled ClanMaster successfully!");
+   }
+   
+   @Override
+   public void onLoad() {
+      instance = this;
+      LOG = getLogger();
+      dataDir = getDataFolder();
+      saveDefaultConfig();
+      LOG.info( getClass().getCanonicalName() + " Loaded ClanMaster");
    }
 }
