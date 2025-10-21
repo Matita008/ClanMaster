@@ -5,7 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.matita08.plugins.clanMaster.storage.DatabaseManager;
+import org.matita08.plugins.clanMaster.storage.database.DatabaseManager;
 import org.matita08.plugins.clanMaster.utils.PAPI;
 
 import java.io.File;
@@ -16,7 +16,7 @@ public final class ClanPlugin extends JavaPlugin {
    @Getter
    private static ClanPlugin instance;
    @Getter
-   private static YamlConfiguration config;
+   private static YamlConfiguration configs;
    @Getter
    private static File dataDir;
    
@@ -26,7 +26,7 @@ public final class ClanPlugin extends JavaPlugin {
    
    @Override
    public void onEnable() {
-      config = (YamlConfiguration) super.getConfig();
+      configs = (YamlConfiguration) super.getConfig();
       
       if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
          PAPI.init();
