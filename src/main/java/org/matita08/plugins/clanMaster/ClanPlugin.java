@@ -1,17 +1,19 @@
 package org.matita08.plugins.clanMaster;
 
+import com.google.common.base.Verify;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.matita08.plugins.clanMaster.commands.ClanCommand;
 import org.matita08.plugins.clanMaster.storage.database.DatabaseManager;
 import org.matita08.plugins.clanMaster.utils.PAPI;
 
 import java.io.File;
 import java.util.logging.Logger;
 
-public final class ClanPlugin extends JavaPlugin {
+public class ClanPlugin extends JavaPlugin {
    private static Logger LOG;
    @Getter
    private static ClanPlugin instance;
@@ -28,9 +30,15 @@ public final class ClanPlugin extends JavaPlugin {
    public void onEnable() {
       configs = (YamlConfiguration) super.getConfig();
       
+      Constants.init(configs);
+      
       if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
          PAPI.init();
       }
+      
+      ClanCommand cc = new ClanCommand();
+      Verify.verifyNotNull(getCommand("clan")).setExecutor(cc);
+      Verify.verifyNotNull(getCommand("clan")).setTabCompleter(cc);
       
       DatabaseManager.init();
       

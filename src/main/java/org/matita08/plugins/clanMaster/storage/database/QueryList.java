@@ -37,10 +37,10 @@ public enum QueryList {
        "?, ?, ?")),
    
    // %1 condition, use 1=1 to short-circuit
-   GET_CLAN(SELECT.format(CLANS_TABLE_NAME.query)),
+   GET_CLAN(SELECT.format(CLANS_TABLE_NAME.query, "%s")),
    GET_CLAN_BY_CID(GET_CLAN.format("cid = ?")),
    GET_CLAN_BY_NAME(GET_CLAN.format("name = ?")),
-   GET_MEMBER(SELECT.format(MEMBERS_TABLE_NAME.query)),
+   GET_MEMBER(SELECT.format(MEMBERS_TABLE_NAME.query, "%s")),
    GET_MEMBER_BY_UUID(GET_MEMBER.format("uuid = ?")),
    ;
    
