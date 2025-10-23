@@ -1,3 +1,9 @@
 database:
   type: LocalH2
-  url: none
+  username: root
+  password: root
+  port: 3306
+  prefix: ClanMaster_
+  dbname: clanmaster
+
+inviteExpirationTime:
