@@ -7,24 +7,61 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.matita08.plugins.clanMaster.storage.database.DatabaseManager;
 
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
-import java.util.WeakHashMap;
+import java.util.*;
 
 public class Member {
-   public static final Map<UUID, Member> members = Collections.synchronizedMap(new WeakHashMap<UUID, Member>());
-   //public static final Map<String, UUID> nameToUUID = Collections.synchronizedMap(new WeakHashMap<String, UUID>());  //TODO: how can i do this in a good way?
+   private static final ReferenceQueue<Member> refQueue = new ReferenceQueue<>();
+   private static final Map<UUID, WeakReference<Member>> members = Collections.synchronizedMap(new WeakHashMap<>());
+   
    @Getter @NonNull private final UUID id;
    @Getter private Clan clan;
    @Getter @NonNull private Rank rank = Rank.None;
-   private WeakReference<OfflinePlayer> underlyingPlayer;
+   private  @NonNull WeakReference<OfflinePlayer> underlyingPlayer;
+   
+   static {
+      Thread cleanupThread = new Thread(()->{
+         while(!Thread.currentThread().isInterrupted()) {
+            try {
+               WeakReference<Member> ref = (WeakReference<Member>)refQueue.remove();
+               if(ref != null) {
+                  Member member = ref.get();
+                  if(member != null) {
+                     DatabaseManager.getInstance().saveMember(member);
+                  }
+               } else Thread.yield();
+            } catch (InterruptedException e) {
+               Thread.currentThread().interrupt();
+            }
+         }
+      }, "Member-Cleanup-Thread");
+      cleanupThread.setDaemon(true);
+      cleanupThread.start();
+   }
+   
+   public static void saveAllMembers() {
+      synchronized (members) {
+         members.values().stream()
+                .map(WeakReference::get)
+                .filter(Objects::nonNull)
+                .forEach(m->DatabaseManager.getInstance().saveMember(m));
+      }
+   }
+   
+   public static void clearCache() { members.clear(); }
+   
+   public static void purgeCache() {
+      synchronized (members) {
+         members.values().removeIf(ref -> ref.get() == null);
+      }
+   }
    
    private Member(@NonNull OfflinePlayer p){
       id = p.getUniqueId();
-      members.put(p.getUniqueId(), this);
+      members.put(p.getUniqueId(), new WeakReference<>(this, refQueue));
       underlyingPlayer = new WeakReference<>(p);
    }
    
@@ -32,16 +69,23 @@ public class Member {
       this.id = id;
       this.clan = clan;
       this.rank = rank;
-      members.put(id, this);
+      underlyingPlayer = new WeakReference<>(Bukkit.getOfflinePlayer(id));
    }
    
    public static Member getMember(OfflinePlayer p){
-      if(!members.containsKey(p.getUniqueId())) members.put(p.getUniqueId(), new Member(p));
-      return members.get(p.getUniqueId());
+      WeakReference<Member> ref = members.get(p.getUniqueId());
+      Member member = ref != null? ref.get() : null;
+      if(member == null) {
+         member = new Member(p);
+         members.put(p.getUniqueId(), new WeakReference<>(member, refQueue));
+      }
+      return member;
    }
    
-   public static void createMember(UUID id, Clan clan, Rank rank){
-      members.put(id, new Member(id, clan, rank == null ? Rank.None : rank));
+   public static Member createMember(UUID id, Clan clan, Rank rank){
+      Member m = new Member(id, clan, rank);
+      members.put(id, new WeakReference<>(m, refQueue));
+      return m;
    }
    
    public boolean isInClan() { return clan != null; }
@@ -60,9 +104,8 @@ public class Member {
       this.clan = clan;
    }
    
-   @SuppressWarnings("DataFlowIssue") //impossible
    public String getName() {
-      return Bukkit.getPlayer(id).getName();
+      return getPlayer().getName();
    }
    
    public boolean isCached() {
@@ -70,8 +113,8 @@ public class Member {
    }
    
    public OfflinePlayer getPlayer() {
-      if(isCached()) return underlyingPlayer.get();
-      return Bukkit.getPlayer(id);
+      if(!isCached()) underlyingPlayer = new WeakReference<>(Bukkit.getPlayer(id));
+      return underlyingPlayer.get();
    }
    
    public OfflinePlayer getPlayerOrNull() {

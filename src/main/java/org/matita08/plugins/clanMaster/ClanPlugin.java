@@ -49,6 +49,8 @@ public class ClanPlugin extends JavaPlugin {
    public void onDisable() {
       saveConfig();
       
+      DatabaseManager.getInstance().close();
+      
       LOG.info( getClass().getCanonicalName() + " Disabled ClanMaster successfully!");
    }
    
