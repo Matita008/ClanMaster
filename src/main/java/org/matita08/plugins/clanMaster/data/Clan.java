@@ -2,15 +2,26 @@ package org.matita08.plugins.clanMaster.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.matita08.plugins.clanMaster.storage.database.DatabaseManager;
 
 import java.util.*;
 
 public class Clan {
-   private static final Map<String, Clan> clans = Collections.synchronizedMap(new HashMap<String, Clan>());
+   private static final Map<String, Clan> clans = Collections.synchronizedMap(new HashMap<>());
+   
    @Getter private final String name;
    @Getter private final String tag;
    @Getter private final Set<Member> members;
    @Getter @Setter private Member owner;
+   @Getter @Setter private boolean membersCached = true;
+   
+   public static void saveAllClans() {
+      synchronized (clans) {
+         clans.values().forEach(DatabaseManager.getInstance()::saveClan);
+      }
+   }
+   
+   public static void purgeAllClans() { clans.clear(); }
    
    private Clan(String name, String tag, Member... members) {
       this.name = name;
@@ -56,8 +67,12 @@ public class Clan {
       return clans.get(name);
    }
    
+   public static boolean isCached(String name) {
+      return clans.containsKey(name);
+   }
+   
    public static Clan getClan(String clanName) {
-      //TODO: add database fetching
+      if(!isCached(clanName)) DatabaseManager.getInstance().fetchClan(clanName);
       return clans.get(clanName);
    }
    
@@ -93,5 +108,4 @@ public class Clan {
    public void addMember(Member m){ members.add(m); }
    
    public void removeMember(Member m) { members.remove(m); }
-   
 }
