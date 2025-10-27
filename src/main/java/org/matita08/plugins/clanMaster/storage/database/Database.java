@@ -151,15 +151,18 @@ public abstract class Database extends StorageMethod {
          getMembersByUUIDStatement.setString(1, member.getId().toString());
          ResultSet rs = getMembersByUUIDStatement.executeQuery();
          
+         String cid;
+         if(member.getClan() != null) cid = member.getClan().getName() + "+" + member.getClan().getTag();
+         else cid = "";
          if(rs.next()) {
-            updateMemberStatement.setString(1, member.getClan().getName() + "+" + member.getClan().getTag());
-            updateMemberStatement.setString(2, member.getRank().name());
+            updateMemberStatement.setString(1, cid);
+            updateMemberStatement.setInt(2, member.getRank().ordinal());
             updateMemberStatement.setString(3, member.getId().toString());
             updateMemberStatement.executeUpdate();
          } else {
             addMemberStatement.setString(1, member.getId().toString());
-            addMemberStatement.setString(2, member.getClan().getName() + "+" + member.getClan().getTag());
-            addMemberStatement.setString(3, member.getRank().name());
+            addMemberStatement.setString(2, cid);
+            addMemberStatement.setInt(3, member.getRank().ordinal());
             addMemberStatement.executeUpdate();
          }
       } catch (SQLException e) {
@@ -180,7 +183,7 @@ public abstract class Database extends StorageMethod {
             Clan clan = null;
             if(Clan.isCached(clanName)) clan = Clan.getClan(clanName);
             return Member.createMember(UUID.fromString(uuid), clan, rank);
-         }
+         } else log("player " + uuid + " is not a valid member", null, Level.SEVERE);
       } catch (SQLException e) {
          log("An exception occurred while fetching a player (uuid = " + uuid + ") from the db", e);
          throw new InternalSQLException(e);
@@ -203,6 +206,8 @@ public abstract class Database extends StorageMethod {
          updateMemberStatement = getConnection().prepareStatement(QueryList.UPDATE_MEMBER.query());
          deleteClanStatement = getConnection().prepareStatement(QueryList.DELETE_CLAN.query());
          deleteMemberStatement = getConnection().prepareStatement(QueryList.DELETE_MEMBER.query());
+         
+         ClanPlugin.logger().info(" [DB] " + this.getClass().getSimpleName() + " loaded");
       } catch (SQLException e) {
          log("An exception occurred while initializing the database, so the plugin will disable to prevent missing data", e, Level.SEVERE);
          Bukkit.getPluginManager().disablePlugin(ClanPlugin.getInstance());

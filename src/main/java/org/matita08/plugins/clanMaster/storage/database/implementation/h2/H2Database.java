@@ -35,6 +35,8 @@ public class H2Database extends Database {
          
          shouldSave = true;
          
+         super.init();
+         
          ClanPlugin.logger().info(" [DB] [H2] Loaded");
       } catch (ClassNotFoundException e) {
          ClanPlugin.logger().log(Level.SEVERE, " [H2] Impossible to load H2 jdbc driver class\nPlease report it to " + Constants.reportUrl, e);
