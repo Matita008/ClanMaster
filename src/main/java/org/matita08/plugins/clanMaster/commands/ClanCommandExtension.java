@@ -54,14 +54,20 @@ public final class ClanCommandExtension {
       }
       
       Member member = Member.getMember(player);
-      if(!member.isPartOf(admin.getClan())) {
+      if(!member.isInClan()) {
          sender.sendMessage(ChatColor.DARK_RED + "The selected member is not in your same clan");
          sender.sendMessage(ChatColor.DARK_RED + "To see the clan members, use /clan info");
-         sender.sendMessage(ChatColor.DARK_RED + "To promote a member, use /clan promote <username>");
       }
       
-      invites.put(player, new Invite(player, admin.getClan()));
-      player.sendMessage(ChatColor.GREEN + "You have been invited to join the clan " + admin.getClan().getName() + " by " + admin.getName());
+      if(member.isPartOf(admin.getClan())) {
+         sender.sendMessage(ChatColor.DARK_RED + "The selected member is in your same clan");
+         sender.sendMessage(ChatColor.DARK_RED + "To see the clan members, use /clan info");
+         sender.sendMessage(ChatColor.DARK_RED + "To promote a member, use /clan promote <username>");
+         return;
+      }
+      
+      invites.put(player, new Invite(member, admin.getClan()));
+      member.sendMessage(ChatColor.GREEN + "You have been invited to join the clan " + admin.getClan().getName() + " by " + admin.getName());
       member.sendMessage(ChatColor.GREEN + "To accept the invitation, use /clan accept", "/clan accept");
       member.sendMessage(ChatColor.RED + "To decline the invitation, use /clan decline", "/clan decline");
       sender.sendMessage(ChatColor.GREEN + "The invitation has been sent to " + player.getName());
@@ -81,7 +87,7 @@ public final class ClanCommandExtension {
    
    @RequiredArgsConstructor
    private static class Invite {
-      private final Player player;
+      private final Member player;
       private final Clan clan;
       private final Date inviteDate = new Date();
       private final BukkitTask expireTask =
@@ -90,10 +96,9 @@ public final class ClanCommandExtension {
       public void acknowledge(boolean accepted) {
          if(expireTask.isCancelled()) return;
          expireTask.cancel();
-         invites.remove(player);
+         invites.remove(player.getPlayer().getPlayer());
          if(accepted) {
-            Member.getMember(player).setClan(clan);
-            clan.addMember(Member.getMember(player));
+            clan.addMember(player);
             player.sendMessage(ChatColor.GREEN + "You have joined the clan " + clan.getName());
             clan.message(ChatColor.WHITE + player.getName() + " has joined the clan " + clan.getName());
          } else player.sendMessage(ChatColor.GREEN + "You have declined the invitation");
@@ -102,7 +107,7 @@ public final class ClanCommandExtension {
       private void expire() {
          if(expireTask.isCancelled()) return;
          expireTask.cancel();
-         invites.remove(player);
+         invites.remove(player.getPlayer().getPlayer());
          player.sendMessage(ChatColor.DARK_RED + "The invitation has expired!");
       }
    }
