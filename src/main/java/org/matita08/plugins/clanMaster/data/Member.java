@@ -47,7 +47,7 @@ public class Member {
          members.values().stream()
                 .map(WeakReference::get)
                 .filter(Objects::nonNull)
-                .forEach(m->DatabaseManager.getInstance().saveMember(m));
+                .forEach(m -> DatabaseManager.getInstance().saveMember(m));
       }
    }
    
@@ -150,4 +150,14 @@ public class Member {
    public int hashCode() {
       return id.hashCode();
    }
+   
+   @Override
+   public String toString() {
+      return "org.matita08.plugins.clanMaster.data.Member{" +
+          "id=" + getId() +
+          ", clan=" + (getClan() == null ? "null" : getClan().getName()) +
+          ", underlyingPlayer=" + (isCached() ? getPlayer() : "null") +
+          '}';
+   }
+   
 }

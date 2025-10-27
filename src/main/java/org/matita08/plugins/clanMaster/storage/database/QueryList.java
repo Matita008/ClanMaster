@@ -43,7 +43,7 @@ public record QueryList(String query) {
    public static final QueryList UPDATE_CLAN = new QueryList(UPDATE.format(CLANS_TABLE_NAME.query, "name = ?, tag = ?, owner = ?", "cid = ?"));
    public static final QueryList UPDATE_CLAN_HOME = new QueryList(UPDATE.format(CLANS_TABLE_NAME.query, "xh = ?, yh = ?, zh = ?", "cid = ?"));
    public static final QueryList UPDATE_CLAN_TERRITORY = new QueryList(UPDATE.format(CLANS_TABLE_NAME.query, "x1 = ?, y1 = ?, z1 = ?, x2 = ?, y2 = ?, z2 = ?", "cid = ?"));
-   public static final QueryList UPDATE_MEMBER = new QueryList(UPDATE.format(MEMBERS_TABLE_NAME.query, "clan = ?, role = ?, perms = ?", "uuid = ?"));
+   public static final QueryList UPDATE_MEMBER = new QueryList(UPDATE.format(MEMBERS_TABLE_NAME.query, "cid = ?, role = ?, perms = ?", "uuid = ?"));
    
    public String format(String... args) {
       return String.format(query, (Object[])args);
