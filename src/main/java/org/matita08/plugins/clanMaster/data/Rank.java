@@ -5,7 +5,16 @@ public enum Rank {
    Admin,
    Senior,
    Member,
-   None;
+   None {
+      @Override
+      public String getPermission() {
+         return "";
+      }
+   };
+   
+   public String getPermission() {
+      return "clan." + name().toLowerCase();
+   }
    
    public static Rank getRank(int pos) {
       return values()[pos];

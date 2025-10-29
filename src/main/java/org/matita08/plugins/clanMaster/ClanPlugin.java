@@ -5,10 +5,10 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 import org.matita08.plugins.clanMaster.commands.ClanCommand;
 import org.matita08.plugins.clanMaster.storage.database.DatabaseManager;
 import org.matita08.plugins.clanMaster.utils.PAPI;
+import org.matita08.plugins.clanMaster.utils.PermsHelper;
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -22,7 +22,7 @@ public class ClanPlugin extends JavaPlugin {
    @Getter
    private static File dataDir;
    
-   public static @NotNull Logger logger() {
+   public static Logger logger() {
       return LOG;
    }
    
@@ -31,10 +31,12 @@ public class ClanPlugin extends JavaPlugin {
       configs = (YamlConfiguration) super.getConfig();
       
       Constants.init(configs);
+      PermsHelper.init();
       
-      if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+      if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
          PAPI.init();
-      }
+         LOG.info("PAPI hooked successfully!");
+      } else LOG.warning("PlaceholderAPI is not installed, the placeholders won't work!");
       
       ClanCommand cc = new ClanCommand();
       Verify.verifyNotNull(getCommand("clan")).setExecutor(cc);
