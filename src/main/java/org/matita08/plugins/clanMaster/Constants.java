@@ -3,6 +3,11 @@ package org.matita08.plugins.clanMaster;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.matita08.plugins.clanMaster.i18n.I18nKey;
+
+import java.io.File;
+import java.io.InputStreamReader;
+import java.util.logging.Level;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class Constants {
@@ -23,5 +28,33 @@ public final class Constants {
          if(config.contains("database.prefix")) databasePrefix = config.getString("database.prefix");
       }
       if(config.contains("inviteExpirationTime")) inviteExpirationTime = config.getInt("inviteExpirationTime");
+      
+      ClanPlugin.getInstance().saveResource("translations\\bundle.properties", false);
+      
+      YamlConfiguration defaultBundle = new YamlConfiguration();
+      try {
+         defaultBundle.load(new InputStreamReader(ClanPlugin.getInstance().getResource("translations\\bundle.properties")));
+      } catch (Throwable t) {
+         ClanPlugin.logger().log(Level.SEVERE, "An error occurred while loading default translation", t);
+         return;
+      }
+      I18nKey.importBundle(defaultBundle); // Load bundled bundle (last fallback)
+      
+      loadBundle(""); //Load default bundle
+      loadBundle(config.getString("language"));//Load current bundle, if exists
+   }
+   
+   public static void loadBundle(String name) {
+      File folder = new File(ClanPlugin.getDataDir(), "translations");
+      File file = new File(folder, "bundle_" + name + ".properties");
+      if(!file.exists()) return;
+      YamlConfiguration bundle = new YamlConfiguration();
+      try {
+         bundle.load(file);
+      } catch (Throwable t) {
+         ClanPlugin.logger().log(Level.SEVERE, "An error occurred while loading translations", t);
+         return;
+      }
+      I18nKey.importBundle(bundle);
    }
 }

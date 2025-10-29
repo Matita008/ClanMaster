@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.matita08.plugins.clanMaster.data.Clan;
 import org.matita08.plugins.clanMaster.data.Member;
 import org.matita08.plugins.clanMaster.data.Rank;
+import org.matita08.plugins.clanMaster.utils.PermsHelper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -85,6 +86,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
    
    public static void createClan(CommandSender sender, String[] args) {
       if(checkNoConsole(sender) || checkLength(sender, args, 3)) return;
+      Player p = (Player)sender;
+      
+      if(!PermsHelper.hasPermission(p, "clans.create")) {
+         sender.sendMessage(ChatColor.DARK_RED + "You don't have permission to create a clan!");
+         return;
+      }
+      
       String name = args[1];
       String tag = args[2];
       
@@ -98,16 +106,17 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
          return;
       }
       
-      Player p = (Player) sender;
       Member m = Member.getMember(p);
       
       if(m.isInClan()) {
          sender.sendMessage(ChatColor.DARK_RED + "You are already in a clan!");
          return;
       }
-      
       Clan.createClan(name, tag, m);
-      p.sendMessage(ChatColor.GREEN + "Clan " + name + " has been created successfully!");
+      
+      PermsHelper.addPermission(p, "clans.owner");
+      
+      m.sendMessage(ChatColor.GREEN + "Clan " + name + " has been created successfully!");
    }
    
    public static void clanInfo(CommandSender sender, String[] args) {
@@ -172,6 +181,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
          return;
       }
       member.setRank(newRank);
+      PermsHelper.addPermission(player, newRank.getPermission());
    }
    
    public static void disbandClan(CommandSender sender) {
@@ -216,7 +226,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
        [X]  /clan create <nome> <tag> - Crea nuovo clan
        [X]  /clan disband - Sciogli clan (solo leader)
        [X]  /clan invite <player> - Invita giocatore
-       [ ]  /clan kick <player> - Espelli membro
+       [X]  /clan kick <player> - Espelli membro
        [X]  /clan promote/demote <player> - Gestisci ruoli
        [X]  /clan chat <messaggio> - Chat clan
        [ ]  /clan claim - Reclama territorio attuale

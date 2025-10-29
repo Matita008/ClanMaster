@@ -12,7 +12,7 @@ authors: [ matita08 ]
 website: https://github.com/Matita008/ClanMaster
 description: A minecraft plugin
 
-depend: [WorldGuard]
+depend: [WorldGuard, LuckPerms]
 softdepend: ["PlaceholderAPI"]
 
 libraries:
@@ -26,28 +26,38 @@ commands:
       - cl
 
 permissions:
-  ClanMaster.*:
+  clans.*:
     default: op
     children:
       ClanMaster.admin: true
 
-  ClanMaster.user:
+  clans.user:
     default: true
     children:
       ClanMaster.create: true
       ClanMaster.use: true
-  ClanMaster.admin:
+  clans.admin:
     default: op
     children:
-      ClanMaster.user: true
-      ClanMaster.delete: true
+      clans.user: true
+      clans.delete: true
 
-  ClanMaster.create:
+  clans.create:
     default: true
     description: Allow the ability to create a clan
-  ClanMaster.use:
+  clans.use:
     default: true
     description: Allow the use of the plugin
-  ClanMaster.delete:
+
+  clans.rank.owner:
     default: false
-    description: Allows the ability to delete any clan
+    description: Represent a player with the owner rank
+  clans.rank.admin:
+    default: false
+    description: Represent a player with the admin rank
+  clans.rank.senior:
+    default: false
+    description: Represent a player with the senior rank
+  clans.rank.member:
+    default: false
+    description: Represent a player with the member rank
