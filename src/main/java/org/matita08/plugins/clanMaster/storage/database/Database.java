@@ -29,7 +29,6 @@ public abstract class Database extends StorageMethod {
    protected PreparedStatement addMemberStatement;
    protected PreparedStatement updateClanStatement;
    protected PreparedStatement updateClanHomeStatement;
-   protected PreparedStatement updateClanTerritoryStatement;
    protected PreparedStatement updateMemberStatement;
    protected PreparedStatement deleteClanStatement;
    protected PreparedStatement deleteMemberStatement;
@@ -61,35 +60,33 @@ public abstract class Database extends StorageMethod {
    }
    
    @Override
-   public void saveClanHome(Clan clan, Location home) {
+   public void saveClanHome(Clan clan) {
+      Location home = clan.getHome();
       try {
-         updateClanHomeStatement.setInt(1, home.getBlockX());
-         updateClanHomeStatement.setInt(2, home.getBlockY());
-         updateClanHomeStatement.setInt(3, home.getBlockZ());
-         updateClanHomeStatement.setString(4, clan.getName() + "+" + clan.getTag());
+         if(home == null) {
+            updateClanHomeStatement.setInt(1, 0);
+            updateClanHomeStatement.setNull(2, java.sql.Types.VARCHAR);
+            updateClanHomeStatement.setNull(3, java.sql.Types.INTEGER);
+            updateClanHomeStatement.setNull(4, java.sql.Types.INTEGER);
+            updateClanHomeStatement.setNull(5, java.sql.Types.INTEGER);
+            updateClanHomeStatement.setNull(6, java.sql.Types.INTEGER);
+            updateClanHomeStatement.setNull(7, java.sql.Types.INTEGER);
+         } else {
+            updateClanHomeStatement.setInt(1, 1);
+            updateClanHomeStatement.setString(2, home.getWorld().getName());
+            updateClanHomeStatement.setInt(3, home.getBlockX());
+            updateClanHomeStatement.setInt(4, home.getBlockY());
+            updateClanHomeStatement.setInt(5, home.getBlockZ());
+            updateClanHomeStatement.setInt(6, (int)(home.getYaw() * 100));
+            updateClanHomeStatement.setInt(7, (int)(home.getPitch() * 100));
+         }
+         updateClanHomeStatement.setString(8, clan.getName() + "+" + clan.getTag());
          updateClanHomeStatement.executeUpdate();
       } catch (SQLException e) {
          log("An exception occurred while saving home location " + home + " for clan " +
              clan.getName() + " to the db", e);
          throw new InternalSQLException(e);
       }
-   }
-   
-   @Override
-   public void saveClanRegion(Clan clan, Location point1, Location point2) {
-      try {
-         updateClanTerritoryStatement.setInt(1, point1.getBlockX());
-         updateClanTerritoryStatement.setInt(2, point1.getBlockY());
-         updateClanTerritoryStatement.setInt(3, point1.getBlockZ());
-         updateClanTerritoryStatement.setInt(4, point2.getBlockX());
-         updateClanTerritoryStatement.setInt(5, point2.getBlockY());
-         updateClanTerritoryStatement.setInt(6, point2.getBlockZ());
-         updateClanTerritoryStatement.setString(7, clan.getName() + "+" + clan.getTag());
-         updateClanTerritoryStatement.executeUpdate();
-      } catch (SQLException e) {
-         log("An exception occurred while saving territory for clan " + clan.getName() + "(points: " + point1 + ", " + point2 + ") to the db", e);
-           throw new InternalSQLException(e);
-       }
    }
    
    @Override
@@ -101,7 +98,14 @@ public abstract class Database extends StorageMethod {
          if(rs.next()) {
             String clanName = rs.getString("name");
             String tag = rs.getString("tag");
-            return Clan.createClan(clanName, tag, fetchMember(rs.getString("owner")));
+            Clan clan = Clan.createClan(clanName, tag, fetchMember(rs.getString("owner")));
+            if(rs.getInt("home") == 1) {
+               float yaw = rs.getInt("jh")/100f;
+               float pitch = rs.getInt("ph")/100f;
+               Location loc = new Location(Bukkit.getWorld(rs.getString("wh")), rs.getInt("xh"), rs.getInt("yh"), rs.getInt("zh"), yaw, pitch);
+               clan.setHome(loc);
+            }
+            return clan;
          }
       } catch (SQLException e) {
          log("An exception occurred while fetching clan " + name + " from the db", e);
@@ -154,10 +158,12 @@ public abstract class Database extends StorageMethod {
          String cid;
          if(member.getClan() != null) cid = member.getClan().getName() + "+" + member.getClan().getTag();
          else cid = "";
+         System.out.println(cid);
          if(rs.next()) {
             updateMemberStatement.setString(1, cid);
             updateMemberStatement.setInt(2, member.getRank().ordinal());
-            updateMemberStatement.setString(3, member.getId().toString());
+            updateMemberStatement.setInt(3, 0);// Unused
+            updateMemberStatement.setString(4, member.getId().toString());
             updateMemberStatement.executeUpdate();
          } else {
             addMemberStatement.setString(1, member.getId().toString());
@@ -202,7 +208,6 @@ public abstract class Database extends StorageMethod {
          addMemberStatement = getConnection().prepareStatement(QueryList.ADD_MEMBER.query());
          updateClanStatement = getConnection().prepareStatement(QueryList.UPDATE_CLAN.query());
          updateClanHomeStatement = getConnection().prepareStatement(QueryList.UPDATE_CLAN_HOME.query());
-         updateClanTerritoryStatement = getConnection().prepareStatement(QueryList.UPDATE_CLAN_TERRITORY.query());
          updateMemberStatement = getConnection().prepareStatement(QueryList.UPDATE_MEMBER.query());
          deleteClanStatement = getConnection().prepareStatement(QueryList.DELETE_CLAN.query());
          deleteMemberStatement = getConnection().prepareStatement(QueryList.DELETE_MEMBER.query());

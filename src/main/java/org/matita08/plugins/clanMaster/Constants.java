@@ -7,6 +7,7 @@ import org.matita08.plugins.clanMaster.i18n.I18nKey;
 
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.Objects;
 import java.util.logging.Level;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
@@ -33,7 +34,7 @@ public final class Constants {
       
       YamlConfiguration defaultBundle = new YamlConfiguration();
       try {
-         defaultBundle.load(new InputStreamReader(ClanPlugin.getInstance().getResource("translations\\bundle.properties")));
+         defaultBundle.load(new InputStreamReader(Objects.requireNonNull(ClanPlugin.getInstance().getResource("translations/bundle.properties"))));
       } catch (Throwable t) {
          ClanPlugin.logger().log(Level.SEVERE, "An error occurred while loading default translation", t);
          return;

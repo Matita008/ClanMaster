@@ -31,6 +31,7 @@ public class Member {
                   Member member = ref.get();
                   if(member != null) {
                      DatabaseManager.getInstance().saveMember(member);
+                     System.out.printf("Saved member %s%n", member.getName());
                   }
                } else Thread.yield();
             } catch (InterruptedException e) {

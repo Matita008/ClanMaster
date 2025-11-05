@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.matita08.plugins.clanMaster.ClanPlugin;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PermsHelper {
@@ -27,11 +28,17 @@ public class PermsHelper {
    
    public static void addPermission (Player player, String permission){
       try {
-         luckPerms.getUserManager().modifyUser(player.getUniqueId(), user->{
-            user.data().add(Node.builder(permission).build());
-         });
+         luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> user.data().add(Node.builder(permission).build()));
       } catch (Exception e) {
-         LOG.warning("Failed to add permission: " + e.getMessage());
+         LOG.log(Level.WARNING, "Failed to add permission: " + e.getMessage(), e);
+      }
+   }
+   
+   public static void removePermission (Player player, String permission){
+      try {
+         luckPerms.getUserManager().modifyUser(player.getUniqueId(), user -> user.data().remove(Node.builder(permission).build()));
+      } catch (Exception e) {
+         LOG.log(Level.WARNING, "Failed to remove permission: " + e.getMessage(), e);
       }
    }
    

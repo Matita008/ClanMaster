@@ -17,12 +17,12 @@ public record QueryList(String query) {
    public static final QueryList CLANS_TABLE_NAME = new QueryList(Constants.getDatabasePrefix() + "clans");
    // %1 auto increment syntax, %2 UUID
    public static final QueryList CLANS_TABLE_ARGS = new QueryList("id %s PRIMARY KEY, cid VARCHAR(255) NOT NULL, name VARCHAR(253) NOT NULL, tag VARCHAR(10)," +
-       " x1 INTEGER, y1 INTEGER, z1 INTEGER, x2 INTEGER, y2 INTEGER, z2 INTEGER, xh INTEGER, yh INTEGER, zh INTEGER, owner %s NOT NULL");
+       "home INTEGER, wh VARCHAR(255), xh INTEGER, yh INTEGER, zh INTEGER, jh INTEGER, ph INTEGER, owner %s NOT NULL");
    public static final QueryList MEMBERS_TABLE_NAME = new QueryList(Constants.getDatabasePrefix() + "players");
    // %1 auto increment syntax, %2 UUID
    public static final QueryList MEMBERS_TABLE_ARGS = new QueryList("id %s PRIMARY KEY, uuid %s NOT NULL, cid VARCHAR(255), role INTEGER, perms INTEGER");
    
-   //     Query ready
+   //Query ready
    public static final QueryList CREATE_CLAN_TABLE = new QueryList(CREATE_TABLE.format(CLANS_TABLE_NAME.query, CLANS_TABLE_ARGS.query));
    public static final QueryList CREATE_MEMBERS_TABLE = new QueryList(CREATE_TABLE.format(MEMBERS_TABLE_NAME.query, MEMBERS_TABLE_ARGS.query));
    
@@ -41,8 +41,7 @@ public record QueryList(String query) {
    public static final QueryList DELETE_MEMBER = new QueryList(DELETE.format(MEMBERS_TABLE_NAME.query, "uuid = ?"));
    
    public static final QueryList UPDATE_CLAN = new QueryList(UPDATE.format(CLANS_TABLE_NAME.query, "name = ?, tag = ?, owner = ?", "cid = ?"));
-   public static final QueryList UPDATE_CLAN_HOME = new QueryList(UPDATE.format(CLANS_TABLE_NAME.query, "xh = ?, yh = ?, zh = ?", "cid = ?"));
-   public static final QueryList UPDATE_CLAN_TERRITORY = new QueryList(UPDATE.format(CLANS_TABLE_NAME.query, "x1 = ?, y1 = ?, z1 = ?, x2 = ?, y2 = ?, z2 = ?", "cid = ?"));
+   public static final QueryList UPDATE_CLAN_HOME = new QueryList(UPDATE.format(CLANS_TABLE_NAME.query, "home = ?, wh = ?, xh = ?, yh = ?, zh = ?, jh = ?, ph = ?", "cid = ?"));
    public static final QueryList UPDATE_MEMBER = new QueryList(UPDATE.format(MEMBERS_TABLE_NAME.query, "cid = ?, role = ?, perms = ?", "uuid = ?"));
    
    public String format(String... args) {

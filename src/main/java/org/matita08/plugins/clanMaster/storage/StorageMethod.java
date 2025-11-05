@@ -1,6 +1,5 @@
 package org.matita08.plugins.clanMaster.storage;
 
-import org.bukkit.Location;
 import org.matita08.plugins.clanMaster.data.Clan;
 import org.matita08.plugins.clanMaster.data.Member;
 
@@ -23,8 +22,7 @@ public abstract class StorageMethod {
    public abstract Clan fetchClan(String name);
    
    public abstract void saveClan(Clan clan);
-   public abstract void saveClanHome(Clan clan, Location home);
-   public abstract void saveClanRegion(Clan clan, Location point1, Location point2);
+   public abstract void saveClanHome(Clan clan);
    
    public abstract CompletableFuture<Clan> fetchFullClanAsync(String name);
 }

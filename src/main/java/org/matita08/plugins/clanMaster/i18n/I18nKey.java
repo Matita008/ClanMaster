@@ -2,6 +2,7 @@ package org.matita08.plugins.clanMaster.i18n;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public enum I18nKey {
    CLAN_ALREADY_EXISTS("clan.error.already-exists"),
    CLAN_NOT_EXISTS("clan.error.not-exists"),
    CLAN_NAME_INVALID("clan.error.name-invalid"),
+   HOME_ERROR("clan.error.home"),
    
    // Permission errors
    NO_PERMISSION("permission.no-permission"),
@@ -39,7 +41,7 @@ public enum I18nKey {
    CANNOT_PROMOTE("clan.error.cannot-promote"),
    CANNOT_DEMOTE("clan.error.cannot-demote"),
    OWNER_CANNOT_LEAVE("clan.error.owner-cannot-leave"),
-   USE_DISBAND("clan.info.use-disband"),
+   HOME_SUCCESFULL("clan.home"),
    
    // Invites
    INVITED_TO_CLAN("invite.received"),
@@ -49,7 +51,6 @@ public enum I18nKey {
    INVITE_ALREADY_EXISTS("invite.error.already-exists"),
    NO_INVITE("invite.error.no-invite"),
    INVITE_JOINED("invite.joined"),
-   INVITE_CLAN_MESSAGE("invite.clan-message"),
    INVITE_DECLINED("invite.declined"),
    INVITE_EXPIRED("invite.expired"),
    
@@ -67,10 +68,12 @@ public enum I18nKey {
    HELP("help"),
    
    // Territory
-   TERRITORY_MUST_BE_IN_CLAN("territory.error.must-be-in-clan"),
    TERRITORY_ALREADY_CLAIMED("territory.error.already-claimed"),
    TERRITORY_CLAIMED("territory.claimed"),
+   TERRITORY_UNCLAIMED("territory.deleted"),
    TERRITORY_REGION_MANAGER_ERROR("territory.error.region-manager"),
+   TERRITORY_ALREADY_PRESENT("territory.error.already-have-territory"),
+   TERRITORY_NOT_PRESENT("territory.error.no-territory"),
    
    // Create clan prompts
    CREATE_CLAN_INFO_PROMPT("clan.create.info-prompt"),
@@ -81,6 +84,14 @@ public enum I18nKey {
    
    public String toString() {
       return ChatColor.translateAlternateColorCodes('&', value);
+   }
+   
+   public void send(CommandSender s){
+      s.sendMessage(toString().split("\n"));
+   }
+   
+   public void sendFormatted(CommandSender s, String... replacement){
+      s.sendMessage(toString().formatted((Object[])replacement).split("\n"));
    }
    
    public static void importBundle(YamlConfiguration bundle) {
@@ -94,6 +105,8 @@ public enum I18nKey {
          } else {
             i18nKey.value = bundle.getString(i18nKey.key);
          }
+         
+         if(i18nKey.value != null) i18nKey.value = i18nKey.value.replaceAll("\\n", "\n");
       }
    }
 }
