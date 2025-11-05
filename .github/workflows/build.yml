@@ -45,7 +45,6 @@ jobs:
         draft: true
         generate_release_notes: true
     
-    - run: echo ${{ github.ref }}
     - name: Draft new build
       uses: softprops/action-gh-release@v2
       if: github.ref == 'refs/heads/main'
@@ -55,6 +54,12 @@ jobs:
         draft: true
         generate_release_notes: true
         tag_name: new-release
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: build.jar
+        path: build/libs
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
     # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
