@@ -13,10 +13,13 @@ import org.matita08.plugins.clanMaster.Constants;
 import org.matita08.plugins.clanMaster.data.Clan;
 import org.matita08.plugins.clanMaster.data.Member;
 import org.matita08.plugins.clanMaster.data.Rank;
+import org.matita08.plugins.clanMaster.i18n.I18nKey;
+import org.matita08.plugins.clanMaster.storage.database.DatabaseManager;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import static org.matita08.plugins.clanMaster.commands.ClanCommand.checkLength;
 import static org.matita08.plugins.clanMaster.commands.ClanCommand.checkNoConsole;
@@ -24,6 +27,45 @@ import static org.matita08.plugins.clanMaster.commands.ClanCommand.checkNoConsol
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ClanCommandExtension {
    private static final Map<Player, Invite> invites = new HashMap<>();
+   
+   public static void setHome(CommandSender sender) {
+      if(checkNoConsole(sender)) return;
+      
+      Member member = Member.getMember((Player) sender);
+      if(!member.isInClan()) {
+         I18nKey.NOT_IN_CLAN.send(sender);
+         return;
+      }
+      
+      if(member.getRank() == Rank.Admin || member.getRank() == Rank.Owner) {
+         member.getClan().setHome(((Player)sender).getLocation());
+         try {
+            DatabaseManager.getInstance().saveClanHome(member.getClan());
+            I18nKey.HOME_SUCCESFULL.send(sender);
+         } catch (Exception e) {
+            member.getClan().setHome(null);
+            I18nKey.HOME_ERROR.send(sender);
+            ClanPlugin.logger().log(Level.WARNING, "Could n ot save clan home for " + member.getClan().getName(), e);
+         }
+      } else I18nKey.NOT_ENABLED.send(sender);
+   }
+   
+   public static void home(CommandSender sender) {
+      if(checkNoConsole(sender)) return;
+      
+      Member member = Member.getMember((Player) sender);
+      if(!member.isInClan()) {
+         I18nKey.NOT_IN_CLAN.send(sender);
+         return;
+      }
+      
+      if(member.getClan().getHome() == null) {
+         return;
+      }
+      
+      ((Player) sender).teleport(member.getClan().getHome());
+   }
+   
    public static void inviteClan(CommandSender sender, String[] args) {
       if(checkNoConsole(sender) || checkLength(sender, args, 2)) return;
       

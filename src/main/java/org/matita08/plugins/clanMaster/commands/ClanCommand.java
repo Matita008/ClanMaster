@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.matita08.plugins.clanMaster.data.Clan;
 import org.matita08.plugins.clanMaster.data.Member;
 import org.matita08.plugins.clanMaster.data.Rank;
+import org.matita08.plugins.clanMaster.i18n.I18nKey;
 import org.matita08.plugins.clanMaster.utils.PermsHelper;
 
 import java.util.Arrays;
@@ -20,8 +21,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.UnaryOperator;
 
-import static org.matita08.plugins.clanMaster.commands.ClanCommandExtension.acknowledgeInvite;
-import static org.matita08.plugins.clanMaster.commands.ClanCommandExtension.inviteClan;
+import static org.matita08.plugins.clanMaster.commands.ClanCommandExtension.*;
+import static org.matita08.plugins.clanMaster.commands.ClanTerritoryCommand.claim;
+import static org.matita08.plugins.clanMaster.commands.ClanTerritoryCommand.unclaim;
 
 public class ClanCommand implements CommandExecutor, TabCompleter {
    
@@ -37,16 +39,20 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
          case "create" -> createClan(sender, args);
          case "disband" -> disbandClan(sender);
          case "info" -> clanInfo(sender, args);
-         case "promote" -> changeRank(sender, args, Rank::getNextRank, "promote");
-         case "demote" -> changeRank(sender, args, Rank::getPreviousRank, "demote");
+         case "promote" -> changeRank(sender, args, Rank::getNextRank, I18nKey.CANNOT_PROMOTE_SELF, I18nKey.CANNOT_PROMOTE);
+         case "demote" -> changeRank(sender, args, Rank::getPreviousRank, I18nKey.CANNOT_DEMOTE_SELF, I18nKey.CANNOT_DEMOTE);
          case "chat" -> Member.getMember((Player)sender).getClan().message(String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
          case "leave" -> leaveClan(sender);
          case "invite" -> inviteClan(sender, args);
          case "accept" -> acknowledgeInvite(sender, true);
          case "decline" -> acknowledgeInvite(sender, false);
          case "kick" -> kickMember(sender, args);
+         case "home" -> home(sender);
+         case "sethome" -> setHome(sender);
+         case "claim" -> claim(sender);
+         case "unclaim" -> unclaim(sender);
          default -> {
-            sender.sendMessage(ChatColor.RED + "/clan " + args[0] + " not found");
+            I18nKey.COMMAND_NOT_FOUND.sendFormatted(sender, args[0]);
             helpClan(sender);
          }
       }
@@ -58,26 +64,26 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
       
       Member admin = Member.getMember((Player) sender);
       if(!admin.isInClan()) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are not in a clan!");
+          I18nKey.NOT_IN_CLAN.send(sender);
          return;
       }
       if(!(admin.getRank() == Rank.Admin || admin.getRank() == Rank.Owner)) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are not enabled to to this");
+          I18nKey.NOT_ENABLED.send(sender);
       }
       
       Player player = Bukkit.getPlayer(args[1]);
       if(player == null) {
-         sender.sendMessage(ChatColor.DARK_RED + "Player not found!");
+          I18nKey.PLAYER_NOT_FOUND.send(sender);
          return;
       }
       if(player.getUniqueId().equals(admin.getId())) {
-         sender.sendMessage(ChatColor.DARK_RED + "You cannot kick yourself!");
+         I18nKey.CANNOT_KICK_SELF.send(sender);
          return;
       }
       
       Member member = Member.getMember(player);
       if(!member.isPartOf(admin.getClan())) {
-         sender.sendMessage(ChatColor.DARK_RED + "The selected member is not in your same clan");
+         I18nKey.MEMBER_NOT_IN_CLAN.send(sender);
       }
       
       member.setClan(null);
@@ -89,7 +95,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
       Player p = (Player)sender;
       
       if(!PermsHelper.hasPermission(p, "clans.create")) {
-         sender.sendMessage(ChatColor.DARK_RED + "You don't have permission to create a clan!");
+         I18nKey.NO_PERMISSION.send(sender);
          return;
       }
       
@@ -97,34 +103,33 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
       String tag = args[2];
       
       if(name.contains(" ") || name.contains("+")) {
-         sender.sendMessage(ChatColor.DARK_RED + "Clan name cannot contain spaces or '+'!");
+         I18nKey.CLAN_NAME_INVALID.send(sender);
          return;
       }
       if(Clan.getClan(name) != null) {
-         sender.sendMessage(ChatColor.DARK_RED + "Clan " + name + " already exists!");
-         sender.sendMessage(ChatColor.RED + "Do /clan info <clan name> for more info");
+         I18nKey.CLAN_ALREADY_EXISTS.sendFormatted(sender, name);
          return;
       }
       
       Member m = Member.getMember(p);
       
       if(m.isInClan()) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are already in a clan!");
+         I18nKey.ALREADY_IN_CLAN.send(sender);
          return;
       }
       Clan.createClan(name, tag, m);
       
       PermsHelper.addPermission(p, "clans.owner");
       
-      m.sendMessage(ChatColor.GREEN + "Clan " + name + " has been created successfully!");
+      I18nKey.CLAN_CREATED.sendFormatted(sender, name);
    }
    
    public static void clanInfo(CommandSender sender, String[] args) {
+      if(checkLength(sender, args, 2)) return;
       String clanName = args[1];
       Clan clan = Clan.getClan(clanName);
       if(clan == null) {
-         sender.sendMessage(ChatColor.DARK_RED + "Clan " + clanName + " does not exist!");
-         sender.sendMessage(ChatColor.BLUE + "Do /clan create <clan name> <clan tag> to create your clan");
+         I18nKey.CLAN_NOT_EXISTS.sendFormatted(sender, clanName);
          return;
       }
       sender.sendMessage(ChatColor.GREEN + "Clan " + clanName + " info: ");
@@ -145,41 +150,42 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
       clan.getMembers().stream().filter(m -> m.getRank().equals(Rank.Member)).forEach(m -> sender.sendMessage(" - " + m.getName()));
    }
    
-   public static void changeRank(CommandSender sender, String[] args, UnaryOperator<Rank> transformer, String transformerName) {
+   public static void changeRank(CommandSender sender, String[] args, UnaryOperator<Rank> transformer, I18nKey selfError, I18nKey error) {
       if(checkNoConsole(sender) || checkLength(sender, args, 2)) return;
       
       Member admin = Member.getMember((Player) sender);
       
       if(!admin.isInClan()) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are not in a clan!");
+          I18nKey.NOT_IN_CLAN.send(sender);
          return;
       }
       if(!(admin.getRank() == Rank.Admin || admin.getRank() == Rank.Owner)) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are not enabled to to this");
+          I18nKey.NOT_ENABLED.send(sender);
          return;
       }
       
       Player player = Bukkit.getPlayer(args[1]);
       if(player == null) {
-         sender.sendMessage(ChatColor.DARK_RED + "Player not found!");
+          I18nKey.PLAYER_NOT_FOUND.send(sender);
          return;
       }
       if(player.getUniqueId().equals(admin.getId())) {
-         sender.sendMessage(ChatColor.DARK_RED + "You cannot " + transformerName + " yourself!");
+         selfError.send(sender);
          return;
       }
       
       Member member = Member.getMember(player);
       if(!member.isPartOf(admin.getClan())) {
-         sender.sendMessage(ChatColor.DARK_RED + "The selected member is not in your same clan");
+         I18nKey.MEMBER_NOT_IN_CLAN.send(sender);
          return;
       }
       
       Rank newRank = transformer.apply(member.getRank());
       if(newRank == null) {
-         sender.sendMessage(ChatColor.DARK_RED + "Admins and Owners can't be " + transformerName + "d");
+         error.send(sender);
          return;
       }
+      PermsHelper.removePermission(player, member.getRank().getPermission());
       member.setRank(newRank);
       PermsHelper.addPermission(player, newRank.getPermission());
    }
@@ -190,18 +196,21 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
       Member admin = Member.getMember((Player) sender);
       
       if(!admin.isInClan()) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are not in a clan!");
+         I18nKey.NOT_IN_CLAN.send(sender);
          return;
       }
       
       if(!(admin.getRank() == Rank.Owner)) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are not enabled to to this");
+          I18nKey.NOT_ENABLED.send(sender);
          return;
       }
       
-      admin.getClan().getMembers().forEach(m -> m.setClan(null));
-      admin.getClan().removeMember(admin);
-      Clan.removeClan(admin.getClan());
+      Clan clan = admin.getClan();
+      clan.getMembers().forEach(m -> m.setClan(null));
+      clan.removeMember(admin);
+      Clan.removeClan(clan);
+      
+      I18nKey.CLAN_DISBANDED.send(sender);
    }
    
    public static void leaveClan(CommandSender sender) {
@@ -209,69 +218,33 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
       
       Member member = Member.getMember((Player)sender);
       if(!member.isInClan()) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are not in a clan!");
+         I18nKey.NOT_IN_CLAN.send(sender);
          return;
       }
       if(member.getRank() == Rank.Owner) {
-         sender.sendMessage(ChatColor.DARK_RED + "You are the owner of the clan, you can't leave the clan!");
-         sender.sendMessage(ChatColor.DARK_RED + "To disband the clan, use /clan disband");
+         I18nKey.OWNER_CANNOT_LEAVE.send(sender);
          return;
       }
       
       member.getClan().removeMember(member);
    }
    
-   /*
-      Comandi Richiesti
-       [X]  /clan create <nome> <tag> - Crea nuovo clan
-       [X]  /clan disband - Sciogli clan (solo leader)
-       [X]  /clan invite <player> - Invita giocatore
-       [X]  /clan kick <player> - Espelli membro
-       [X]  /clan promote/demote <player> - Gestisci ruoli
-       [X]  /clan chat <messaggio> - Chat clan
-       [ ]  /clan claim - Reclama territorio attuale
-       [ ]  /clan unclaim - Libera territorio
-       [ ]  /clan home - Teletrasporto home
-       [ ]  /clan sethome - Imposta home clan
-       [x]  /clan info [clan] - Info clan
-       [-]  /clan help
-       
-       [X]  /clan leave - Esci dal clan
-    */
    public static void helpClan(CommandSender sender){
-      sender.sendMessage("----- " + ChatColor.GOLD + "ClanMaster " + ChatColor.GREEN + " Master -----");
-      sender.sendMessage(ChatColor.AQUA + "/clan help: shows the help guide");
-      sender.sendMessage(ChatColor.AQUA + "/clan create <clan name>, <clan tag>: create a clan with the given name and tag");
-      sender.sendMessage(ChatColor.AQUA + "/clan disband: disband your clan");
-      sender.sendMessage(ChatColor.AQUA + "/clan promote <username>: promote a member to the next rank");
-      sender.sendMessage(ChatColor.AQUA + "/clan demote <username>: demote a member to the previous rank");
-      sender.sendMessage(ChatColor.AQUA + "/clan info <clan name>: shows info about the given clan");
-      sender.sendMessage(ChatColor.AQUA + "/clan invite <username>: invite a player to your clan");
-      sender.sendMessage(ChatColor.AQUA + "/clan kick <username>: kick a player from your clan");
-      sender.sendMessage(ChatColor.AQUA + "/clan accept: accept an invitation");
-      sender.sendMessage(ChatColor.AQUA + "/clan decline: decline an invitation");
-   //   sender.sendMessage(ChatColor.AQUA + "/clan claim: claim your current territory");          //TODO
-   //   sender.sendMessage(ChatColor.AQUA + "/clan unclaim: unclaim your current territory");      //TODO
-   //   sender.sendMessage(ChatColor.AQUA + "/clan home: teleport to your clan's home");           //TODO
-   //   sender.sendMessage(ChatColor.AQUA + "/clan sethome: set your clan's home");                //TODO
-      sender.sendMessage(ChatColor.AQUA + "/clan leave: leave your clan");
-      sender.sendMessage(ChatColor.AQUA + "/clan chat <message>: send a message to your clan");
-      sender.sendMessage(ChatColor.GREEN + "----- End of help guide -----");
-      sender.sendMessage(ChatColor.GREEN + "ClanMaster by Matita008");
+      I18nKey.HELP.send(sender);
       if(sender instanceof Player p) {
-         Member.getMember(p).sendMessage("https://github.com/Matita08/ClanMaster" , "https://github.com/Matita08/ClanMaster", ClickEvent.Action.OPEN_URL);
+         Member.getMember(p).sendMessage(ChatColor.UNDERLINE + "Report an issue" , "https://github.com/Matita08/ClanMaster/issues/new", ClickEvent.Action.OPEN_URL);
       } else sender.sendMessage(ChatColor.BLUE + "https://github.com/Matita08/ClanMaster");
    }
    
    public static boolean checkNoConsole(CommandSender sender){
       if(sender instanceof Player) return false;
-      sender.sendMessage(ChatColor.DARK_RED + "Command not available from the console");
+      I18nKey.COMMAND_NO_CONSOLE.send(sender);
       return true;
    }
    
    public static boolean checkLength(CommandSender sender, String[] args, int length) {
       if(args.length == length) return false;
-      sender.sendMessage(ChatColor.DARK_RED + "Wrong usage\nDo /clan help for more info");
+      I18nKey.COMMAND_WRONG_USAGE.send(sender);
       return true;
    }
    
