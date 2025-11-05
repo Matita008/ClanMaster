@@ -1,8 +1,63 @@
 name: ClanPlugin
+main: org.matita08.plugins.clanMaster.ClanPlugin
+
 version: '1.0.0'
-main: org.matita08.plugins.clanPlugin.ClanPlugin
-api-version: '1.18'
 prefix: ClanMaster
+database: true
+
 load: STARTUP
+api-version: '1.21.4'
+
 authors: [ matita08 ]
+website: https://github.com/Matita008/ClanMaster
 description: A minecraft plugin
+
+depend: [WorldGuard, LuckPerms]
+softdepend: ["PlaceholderAPI"]
+
+libraries:
+  - com.h2database:h2:2.4.240
+
+commands:
+  clan:
+    description: Main plugin command
+    permission: ClanMaster.use
+    aliases:
+      - cl
+
+permissions:
+  clans.*:
+    default: op
+    children:
+      ClanMaster.admin: true
+
+  clans.user:
+    default: true
+    children:
+      ClanMaster.create: true
+      ClanMaster.use: true
+  clans.admin:
+    default: op
+    children:
+      clans.user: true
+      clans.delete: true
+
+  clans.create:
+    default: true
+    description: Allow the ability to create a clan
+  clans.use:
+    default: true
+    description: Allow the use of the plugin
+
+  clans.rank.owner:
+    default: false
+    description: Represent a player with the owner rank
+  clans.rank.admin:
+    default: false
+    description: Represent a player with the admin rank
+  clans.rank.senior:
+    default: false
+    description: Represent a player with the senior rank
+  clans.rank.member:
+    default: false
+    description: Represent a player with the member rank
