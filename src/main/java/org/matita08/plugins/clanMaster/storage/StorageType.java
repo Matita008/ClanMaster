@@ -4,7 +4,9 @@ import org.matita08.plugins.clanMaster.storage.database.DatabaseManager;
 
 public enum StorageType {
    LocalH2(DatabaseManager::createLocalH2,"H2",  "Local"),
-   RemoteH2(DatabaseManager::createRemoteH2);
+   RemoteH2(DatabaseManager::createRemoteH2),
+   MariaDB(DatabaseManager::createMariaDB),
+   ;
    
    public final StorageBuilder builder;
    private final String[] aliases;
