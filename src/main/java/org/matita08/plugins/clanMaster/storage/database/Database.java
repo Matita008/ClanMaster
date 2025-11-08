@@ -196,7 +196,18 @@ public abstract class Database extends StorageMethod {
       }
       return null;
    }
-      
+   
+   @Override
+   public void deleteClan(Clan clan) {
+      try {
+         deleteClanStatement.setString(1, clan.getName() + "+" + clan.getTag());
+         deleteClanStatement.executeUpdate();
+      } catch (SQLException e) {
+         log("An exception occurred while deleting a clan (" + clan + ") from the db", e);
+         throw new InternalSQLException(e);
+      }
+   }
+   
    @Override
    public void init() {
       try {

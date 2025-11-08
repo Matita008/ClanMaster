@@ -92,7 +92,7 @@ public class Clan {
    }
    
    public static void removeClan(Clan clan) {
-      //TODO: remove from database
+      DatabaseManager.getInstance().deleteClan(clan);
       clans.remove(clan.getName());
       for (Member member: clan.members) {
          member.setClan(null);

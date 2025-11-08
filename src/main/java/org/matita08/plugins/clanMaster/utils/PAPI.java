@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.matita08.plugins.clanMaster.ClanPlugin;
 import org.matita08.plugins.clanMaster.data.Member;
+import org.matita08.plugins.clanMaster.i18n.I18nKey;
 
 public class PAPI extends PlaceholderExpansion {
    static final ClanPlugin pl = ClanPlugin.getInstance();
@@ -35,7 +36,7 @@ public class PAPI extends PlaceholderExpansion {
    public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
       Member member = Member.getMember(player);
       if(member == null) return null;
-      if(!member.isInClan()) return Strings.NO_CLAN;
+      if(!member.isInClan()) return I18nKey.NO_CLAN.toString();
       
       return switch(params) {
          case "clan", "player_clan" -> member.getClan().getName();
@@ -50,10 +51,5 @@ public class PAPI extends PlaceholderExpansion {
       if(instance != null) return;
       instance = new PAPI();
       instance.register();
-   }
-   
-   //TODO: crate i8n class, this is here to make future refactoring easier (i hope at least)
-   static final class Strings {
-      public static final String NO_CLAN = "not in a clan";
    }
 }

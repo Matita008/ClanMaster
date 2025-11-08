@@ -24,5 +24,7 @@ public abstract class StorageMethod {
    public abstract void saveClan(Clan clan);
    public abstract void saveClanHome(Clan clan);
    
+   public abstract void deleteClan(Clan clan);
+   
    public abstract CompletableFuture<Clan> fetchFullClanAsync(String name);
 }
